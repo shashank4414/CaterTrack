@@ -1,0 +1,94 @@
+// -----------------------------------------------
+// DATABASE CONFIGURATION
+// -----------------------------------------------
+
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ------------------------------------------------
+// DATABASE SCHEMA
+// ------------------------------------------------
+
+// --------------------------------------------
+// CLIENTS
+// Store information about clients
+// --------------------------------------------
+model Client {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String?  @unique
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  orders Order[] // One-to-many relationship with orders
+}
+
+// --------------------------------------------
+// Categories
+// Store information about product categories
+// --------------------------------------------
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  // Relations
+  menuItems MenuItem[] // One-to-many relationship with menu items
+}
+
+// --------------------------------------------
+// menu_items
+// Store information about menu items
+// --------------------------------------------
+model MenuItem {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  categoryId  Int
+
+  // Relations
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+}
+
+// --------------------------------------------
+// Orders
+// Store information about orders
+// --------------------------------------------
+model Order {
+  id           Int       @id @default(autoincrement())
+  clientId     Int
+  total        Float
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deliveryDate DateTime?
+  discount     Float?    @default(0)
+  status       String    @default("pending")
+
+  // Relations
+  client Client      @relation(fields: [clientId], references: [id])
+  items  OrderItem[] // One-to-many relationship with order items
+}
+
+// --------------------------------------------
+// OrderItems
+// Store information about items in an order
+// --------------------------------------------
+model OrderItem {
+  id         Int @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  quantity   Int
+
+  // Relations
+  order    Order    @relation(fields: [orderId], references: [id])
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+}

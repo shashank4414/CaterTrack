@@ -1,0 +1,6 @@
+-- CreateTable
+CREATE TABLE "Item" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "archived" BOOLEAN NOT NULL DEFAULT false
+);
