@@ -1,12 +1,26 @@
 import prisma from '../prisma';
 import { Request, Response } from 'express';
 
-// ---------------------------------------------
-// GET /clients - Get all clients, filter, sort, pagination
-// ---------------------------------------------
-import { Request, Response } from 'express';
-import prisma from '../prisma';
+//#region Client Controller
 
+/**
+ * GET /clients - Get all clients, filter, sort, pagination
+ *
+ * Fetches a list of clients with optional filtering, sorting, and pagination.
+ *
+ * @param req - Express request object containing query parameters for filtering, sorting, and pagination.
+ * @param res - Express response object used to send the response back to the client.
+ * Query Parameters:
+ * - search:(case-insensitive).
+ * - phone:(case-insensitive).
+ * - email:(case-insensitive).
+ * - sortBy:(default: 'firstName').
+ * - order:(default: 'asc').
+ * - page:(default: 1).
+ * - limit:(default: 10).
+ * Response:
+ * - A JSON object containing pagination info and the list of clients matching the criteria.
+ */
 export const getClients = async (req: Request, res: Response) => {
   try {
     const {
@@ -88,9 +102,21 @@ export const getClients = async (req: Request, res: Response) => {
   }
 };
 
-// ---------------------------------------------
-// POST /clients - Create a new client
-// ---------------------------------------------
+/**
+ * POST /clients - Create a new client
+ *
+ * Creates a new client.
+ *
+ * @param req - Express request object containing client data in the request body.
+ * @param res - Express response object used to send the response back to the client.
+ * Request Body:
+ * - firstName:(required).
+ * - lastName:(required).
+ * - phone:(required).
+ * - email:(optional).
+ * Response:
+ * - The created client object.
+ */
 export const createClient = async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, phone, email } = req.body;
@@ -121,9 +147,16 @@ export const createClient = async (req: Request, res: Response) => {
   }
 };
 
-// ---------------------------------------------
-// GET /clients/:id - Get a client by ID
-// ---------------------------------------------
+/**
+ * GET /clients/:id - Get a client by ID
+ *
+ * Retrieves a client by their ID.
+ *
+ * @param req - Express request object containing the client ID in the request parameters.
+ * @param res - Express response object used to send the response back to the client.
+ * Response:
+ * - The client object if found, or a 404 error if not found.
+ */
 export const getClientById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -139,9 +172,21 @@ export const getClientById = async (req: Request, res: Response) => {
   }
 };
 
-// ---------------------------------------------
-// PUT /clients/:id - Update a client by ID
-// ---------------------------------------------
+/**
+ * PUT /clients/:id - Update a client by ID
+ *
+ * Updates a client by their ID.
+ *
+ * @param req - Express request object containing the client ID in the request parameters and updated client data in the request body.
+ * @param res - Express response object used to send the response back to the client.
+ * Request Body:
+ * - firstName:(required).
+ * - lastName:(required).
+ * - phone:(required).
+ * - email:(optional).
+ * Response:
+ * - The updated client object if found, or a 404 error if not found.
+ */
 export const updateClient = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -180,9 +225,16 @@ export const updateClient = async (req: Request, res: Response) => {
   }
 };
 
-// ---------------------------------------------
-// DELETE /clients/:id - Delete a client by ID
-// ---------------------------------------------
+/**
+ * DELETE /clients/:id - Delete a client by ID
+ *
+ * Deletes a client by their ID.
+ *
+ * @param req - Express request object containing the client ID in the request parameters.
+ * @param res - Express response object used to send the response back to the client.
+ * Response:
+ * - 204 No Content if the client was successfully deleted, or a 404 error if not found.
+ */
 export const deleteClient = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -202,17 +254,29 @@ export const deleteClient = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to delete client' });
   }
 };
+//#endregion
+
+// #region Helper Functions
 
 // ------------------- Helper Functions ------------------
 
-// ---------------------------------------------
-// Validation function for client data (used in create and update)
-// ---------------------------------------------
+/**
+ * Interface representing the result of client data validation.
+ * - valid: A boolean indicating whether the client data is valid.
+ * - errors: An array of strings describing any validation errors that were found.
+ */
 export interface ClientValidationResult {
   valid: boolean;
   errors: string[];
 }
 
+/**
+ * Validates client data for creating or updating a client.
+ *
+ * @param data - An object containing the client data to validate.
+ * @param excludeId - An optional client ID to exclude from duplicate email checks (used during updates).
+ * @returns An object containing a boolean 'valid' indicating if the data is valid, and an array of 'errors' describing any validation issues.
+ */
 export const validateClient = async (
   data: {
     firstName?: string;
@@ -257,3 +321,4 @@ export const validateClient = async (
     errors,
   };
 };
+//#endregion
