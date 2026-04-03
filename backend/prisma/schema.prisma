@@ -14,10 +14,10 @@ generator client {
 // DATABASE SCHEMA
 // ------------------------------------------------
 
-// --------------------------------------------
-// CLIENTS
-// Store information about clients
-// --------------------------------------------
+/**
+ * Clients
+ * Store information about clients
+ */
 model Client {
   id        Int      @id @default(autoincrement())
   firstName String
@@ -31,10 +31,11 @@ model Client {
   orders Order[] // One-to-many relationship with orders
 }
 
-// --------------------------------------------
-// Categories
-// Store information about product categories
-// --------------------------------------------
+// ------------------------------------------------
+/**
+ * Categories
+ * Store information about product categories
+ */
 model Category {
   id   Int    @id @default(autoincrement())
   name String @unique
@@ -43,10 +44,11 @@ model Category {
   menuItems MenuItem[] // One-to-many relationship with menu items
 }
 
-// --------------------------------------------
-// menu_items
-// Store information about menu items
-// --------------------------------------------
+//----------------------------------------------------
+/**
+ * Menu Items
+ * Store information about menu items
+ */
 model MenuItem {
   id          Int     @id @default(autoincrement())
   name        String
@@ -59,10 +61,11 @@ model MenuItem {
   orderItems OrderItem[]
 }
 
-// --------------------------------------------
-// Orders
-// Store information about orders
-// --------------------------------------------
+//---------------------------------------------------------
+/**
+ * Orders
+ * Store information about orders
+ */
 model Order {
   id           Int       @id @default(autoincrement())
   clientId     Int
@@ -78,10 +81,11 @@ model Order {
   items  OrderItem[] // One-to-many relationship with order items
 }
 
-// --------------------------------------------
-// OrderItems
-// Store information about items in an order
-// --------------------------------------------
+// ---------------------------------------------------------
+/**
+ * Order Items
+ * Store information about items in an order
+ */
 model OrderItem {
   id         Int @id @default(autoincrement())
   orderId    Int

@@ -18,6 +18,7 @@ import { Request, Response } from 'express';
  * - order:(default: 'asc').
  * - page:(default: 1).
  * - limit:(default: 10).
+ *
  * Response:
  * - A JSON object containing pagination info and the list of clients matching the criteria.
  */
@@ -114,6 +115,7 @@ export const getClients = async (req: Request, res: Response) => {
  * - lastName:(required).
  * - phone:(required).
  * - email:(optional).
+ *
  * Response:
  * - The created client object.
  */
@@ -184,6 +186,7 @@ export const getClientById = async (req: Request, res: Response) => {
  * - lastName:(required).
  * - phone:(required).
  * - email:(optional).
+ *
  * Response:
  * - The updated client object if found, or a 404 error if not found.
  */

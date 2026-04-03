@@ -14,6 +14,7 @@ import { Request, Response } from 'express';
  * - order:(default: 'asc').
  * - page:(default: 1).
  * - limit:(default: 10).
+ *
  * Response:
  * - A JSON object containing pagination info and the list of categories matching the criteria.
  */
@@ -91,6 +92,7 @@ export const getCategories = async (req: Request, res: Response) => {
  * @param res - Express response object used to send the response back to the client.
  * Request Body:
  * - name:(required).
+ *
  * Response:
  * - The created category object.
  */
@@ -146,6 +148,7 @@ export const getCategoryById = async (req: Request, res: Response) => {
  * @param res - Express response object used to send the response back to the client.
  * Request Body:
  * - name:(required).
+ *
  * Response:
  * - The updated category object if found, or a 404 error if not found.
  */
@@ -157,6 +160,13 @@ export const updateCategory = async (req: Request, res: Response) => {
     const validation = await validateCategory({ name });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
+    }
+
+    const existing = await prisma.category.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!existing) {
+      return res.status(404).json({ error: 'Category not found' });
     }
 
     const category = await prisma.category.update({

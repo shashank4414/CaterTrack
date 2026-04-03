@@ -8,6 +8,7 @@ import { Request, Response } from 'express';
  *
  * @param req - Express request object containing query parameters for filtering, sorting, and pagination.
  * @param res - Express response object used to send the response back to the client.
+ *
  * Query Parameters:
  * - search:(case-insensitive).
  * - categoryId:(exact match).
@@ -15,6 +16,7 @@ import { Request, Response } from 'express';
  * - order:(default: 'asc').
  * - page:(default: 1).
  * - limit:(default: 10).
+ *
  * Response:
  * - A JSON object containing pagination info and the list of menu items matching the criteria.
  */
@@ -139,6 +141,7 @@ export const createMenuItem = async (req: Request, res: Response) => {
  *
  * @param req - Express request object containing the menu item ID in the request parameters.
  * @param res - Express response object used to send the response back to the client.
+ *
  * Response:
  * - The menu item object if found, or a 404 error if not found.
  */
@@ -164,6 +167,7 @@ export const getMenuItemById = async (req: Request, res: Response) => {
  *
  * @param req - Express request object containing the menu item ID in the request parameters and the updated data in the request body.
  * @param res - Express response object used to send the response back to the client.
+ *
  * Response:
  * - The updated menu item object if successful, or a 404 error if the menu item is not found.
  */
@@ -182,6 +186,15 @@ export const updateMenuItem = async (req: Request, res: Response) => {
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
     }
+
+    //check if menu item exists
+    const existing = await prisma.menuItem.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!existing) {
+      return res.status(404).json({ error: 'Menu item not found' });
+    }
+    // Update the menu item
     const menuItem = await prisma.menuItem.update({
       where: { id: Number(id) },
       data: { name, description, price, categoryId },
