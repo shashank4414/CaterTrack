@@ -265,6 +265,13 @@ describe('updateMenuItem', () => {
 
   it('updates menu item and responds 200', async () => {
     mockPrismaCategory.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+    mockPrismaMenuItem.findUnique.mockResolvedValueOnce({
+      id: 1,
+      name: 'Steak',
+      description: null,
+      price: 25,
+      categoryId: 1,
+    } as any);
     const updated = {
       id: 1,
       name: 'Updated Steak',
@@ -287,6 +294,13 @@ describe('updateMenuItem', () => {
 
   it('responds 500 when database throws', async () => {
     mockPrismaCategory.findUnique.mockResolvedValueOnce({ id: 1 } as any);
+    mockPrismaMenuItem.findUnique.mockResolvedValueOnce({
+      id: 1,
+      name: 'Steak',
+      description: null,
+      price: 25,
+      categoryId: 1,
+    } as any);
     mockPrismaMenuItem.update.mockRejectedValueOnce(new Error('DB error'));
 
     const req = mockReq({

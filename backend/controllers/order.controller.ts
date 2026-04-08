@@ -1,6 +1,12 @@
 import prisma from '../prisma';
 import { Request, Response } from 'express';
 
+type ExistingOrderRecord = NonNullable<
+  Awaited<ReturnType<typeof prisma.order.findUnique>>
+> & {
+  note: string | null;
+};
+
 /**
  * GET /orders - Get all orders, filter, sort, pagination
  *
@@ -93,10 +99,15 @@ export const orders = async (req: Request, res: Response) => {
  */
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const { clientId, status, total, deliveryDate, discount } = req.body;
+    const { clientId, status, total, deliveryDate, discount, note } = req.body;
 
     //validate
-    const validation = await validateOrder({ clientId, status, total });
+    const validation = await validateOrder({
+      clientId,
+      status: status ?? 'pending',
+      total,
+      note,
+    });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
     }
@@ -105,10 +116,11 @@ export const createOrder = async (req: Request, res: Response) => {
     const newOrder = await prisma.order.create({
       data: {
         clientId,
-        status,
+        status: status ?? undefined,
         total,
         deliveryDate: deliveryDate ? new Date(deliveryDate) : null,
         discount: discount ?? 0,
+        note: typeof note === 'string' ? note.trim() || null : null,
       },
     });
 
@@ -164,20 +176,26 @@ export const getOrderById = async (req: Request, res: Response) => {
 export const updateOrder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { clientId, status, total, deliveryDate, discount } = req.body;
+    const { clientId, status, total, deliveryDate, discount, note } = req.body;
 
-    // validate
-    const validation = await validateOrder({ clientId, status, total });
+    const existingOrder = (await prisma.order.findUnique({
+      where: { id: Number(id) },
+    })) as ExistingOrderRecord | null;
+    if (!existingOrder) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // validate merged update payload against the stored order
+    const validation = await validateOrder({
+      clientId: clientId !== undefined ? clientId : existingOrder.clientId,
+      status: status !== undefined ? status : existingOrder.status,
+      total: total !== undefined ? total : existingOrder.total,
+      note: note !== undefined ? note : existingOrder.note,
+    });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
     }
 
-    const existingOrder = await prisma.order.findUnique({
-      where: { id: Number(id) },
-    });
-    if (!existingOrder) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
     // Update order
     const updatedOrder = await prisma.order.update({
       where: { id: Number(id) },
@@ -190,6 +208,12 @@ export const updateOrder = async (req: Request, res: Response) => {
             ? new Date(deliveryDate)
             : existingOrder.deliveryDate,
         discount: discount !== undefined ? discount : existingOrder.discount,
+        note:
+          note !== undefined
+            ? typeof note === 'string'
+              ? note.trim() || null
+              : null
+            : existingOrder.note,
       },
     });
     res.json(updatedOrder);
@@ -241,6 +265,7 @@ export const validateOrder = async (data: {
   clientId?: number;
   status?: string;
   total?: number;
+  note?: string | null;
 }): Promise<{ valid: boolean; errors: string[] }> => {
   const errors: string[] = [];
 
@@ -274,6 +299,9 @@ export const validateOrder = async (data: {
   // validate length
   if (data.status && data.status.length > 50) {
     errors.push('Status must be 50 characters or less');
+  }
+  if (data.note && data.note.trim().length > 1000) {
+    errors.push('Note must be less than 1000 characters');
   }
   return { valid: errors.length === 0, errors };
 };

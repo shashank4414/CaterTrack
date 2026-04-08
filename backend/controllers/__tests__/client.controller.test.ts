@@ -149,7 +149,6 @@ describe('createClient', () => {
     const body = (res.json as jest.Mock).mock.calls[0][0];
     expect(body.errors).toContain('First name is required');
     expect(body.errors).toContain('Last name is required');
-    expect(body.errors).toContain('Phone number is required');
   });
 
   it('responds 400 for invalid email format', async () => {
@@ -392,7 +391,6 @@ describe('validateClient', () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toContain('First name is required');
     expect(result.errors).toContain('Last name is required');
-    expect(result.errors).toContain('Phone number is required');
   });
 
   it('returns error for invalid email format', async () => {

@@ -110,11 +110,12 @@ export const getMenuItems = async (req: Request, res: Response) => {
  */
 export const createMenuItem = async (req: Request, res: Response) => {
   try {
-    const { name, description, price, categoryId } = req.body;
+    const { name, subtitle, description, price, categoryId } = req.body;
 
     // Validate
     const validation = await validateMenuItem({
       name,
+      subtitle,
       description,
       price,
       categoryId,
@@ -126,7 +127,14 @@ export const createMenuItem = async (req: Request, res: Response) => {
 
     // Create the menu item
     const newMenuItem = await prisma.menuItem.create({
-      data: { name, description, price, categoryId },
+      data: {
+        name: name.trim(),
+        subtitle: typeof subtitle === 'string' ? subtitle.trim() || null : null,
+        description:
+          typeof description === 'string' ? description.trim() || null : null,
+        price,
+        categoryId,
+      },
     });
     res.status(201).json(newMenuItem);
   } catch (error) {
@@ -174,11 +182,12 @@ export const getMenuItemById = async (req: Request, res: Response) => {
 export const updateMenuItem = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description, price, categoryId } = req.body;
+    const { name, subtitle, description, price, categoryId } = req.body;
 
     // Validate
     const validation = await validateMenuItem({
       name,
+      subtitle,
       description,
       price,
       categoryId,
@@ -197,7 +206,14 @@ export const updateMenuItem = async (req: Request, res: Response) => {
     // Update the menu item
     const menuItem = await prisma.menuItem.update({
       where: { id: Number(id) },
-      data: { name, description, price, categoryId },
+      data: {
+        name: name.trim(),
+        subtitle: typeof subtitle === 'string' ? subtitle.trim() || null : null,
+        description:
+          typeof description === 'string' ? description.trim() || null : null,
+        price,
+        categoryId,
+      },
     });
     res.json(menuItem);
   } catch (error) {
@@ -255,6 +271,7 @@ export interface MenuItemValidationResult {
  */
 export const validateMenuItem = async (data: {
   name: string;
+  subtitle?: string | null;
   description?: string;
   price: number;
   categoryId: number;
@@ -293,6 +310,9 @@ export const validateMenuItem = async (data: {
   // validate length
   if (data.name && data.name.length > 255) {
     errors.push('Name must be less than 255 characters');
+  }
+  if (data.subtitle && data.subtitle.length > 255) {
+    errors.push('Subtitle must be less than 255 characters');
   }
   if (data.description && data.description.length > 1000) {
     errors.push('Description must be less than 1000 characters');

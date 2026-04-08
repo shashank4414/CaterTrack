@@ -24,6 +24,7 @@ model Client {
   lastName  String
   email     String?  @unique
   phone     String?
+  note      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -37,8 +38,9 @@ model Client {
  * Store information about product categories
  */
 model Category {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  subtitle String?
 
   // Relations
   menuItems MenuItem[] // One-to-many relationship with menu items
@@ -52,6 +54,7 @@ model Category {
 model MenuItem {
   id          Int     @id @default(autoincrement())
   name        String
+  subtitle    String?
   description String?
   price       Float
   categoryId  Int
@@ -75,6 +78,7 @@ model Order {
   deliveryDate DateTime?
   discount     Float?    @default(0)
   status       String    @default("pending")
+  note         String?
 
   // Relations
   client Client      @relation(fields: [clientId], references: [id])
@@ -87,10 +91,12 @@ model Order {
  * Store information about items in an order
  */
 model OrderItem {
-  id         Int @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   orderId    Int
   menuItemId Int
   quantity   Int
+  price      Float
+  note       String?
 
   // Relations
   order    Order    @relation(fields: [orderId], references: [id])

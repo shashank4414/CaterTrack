@@ -53,6 +53,12 @@ export const getCategories = async (req: Request, res: Response) => {
                     mode: 'insensitive',
                   },
                 },
+                {
+                  subtitle: {
+                    contains: String(search),
+                    mode: 'insensitive',
+                  },
+                },
               ],
             }
           : {},
@@ -98,16 +104,19 @@ export const getCategories = async (req: Request, res: Response) => {
  */
 export const createCategory = async (req: Request, res: Response) => {
   try {
-    const { name } = req.body;
+    const { name, subtitle } = req.body;
 
     // Validation
-    const validation = await validateCategory({ name });
+    const validation = await validateCategory({ name, subtitle });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
     }
 
     const category = await prisma.category.create({
-      data: { name: name.trim() },
+      data: {
+        name: name.trim(),
+        subtitle: typeof subtitle === 'string' ? subtitle.trim() || null : null,
+      },
     });
     res.status(201).json(category);
   } catch (error) {
@@ -155,9 +164,9 @@ export const getCategoryById = async (req: Request, res: Response) => {
 export const updateCategory = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, subtitle } = req.body;
     // Validation
-    const validation = await validateCategory({ name });
+    const validation = await validateCategory({ name, subtitle });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
     }
@@ -171,7 +180,10 @@ export const updateCategory = async (req: Request, res: Response) => {
 
     const category = await prisma.category.update({
       where: { id: Number(id) },
-      data: { name: name.trim() },
+      data: {
+        name: name.trim(),
+        subtitle: typeof subtitle === 'string' ? subtitle.trim() || null : null,
+      },
     });
     res.json(category);
   } catch (error) {
@@ -216,10 +228,17 @@ export const deleteCategory = async (req: Request, res: Response) => {
  */
 export const validateCategory = async (data: {
   name: string;
+  subtitle?: string | null;
 }): Promise<CategoryValidationResult> => {
   const errors: string[] = [];
   if (!data.name || data.name.trim() === '') {
     errors.push('Name is required');
+  }
+  if (data.name && data.name.trim().length > 100) {
+    errors.push('Name must be less than 100 characters');
+  }
+  if (data.subtitle && data.subtitle.trim().length > 255) {
+    errors.push('Subtitle must be less than 255 characters');
   }
 
   return {

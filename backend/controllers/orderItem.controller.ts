@@ -1,6 +1,13 @@
 import prisma from '../prisma';
 import { Request, Response } from 'express';
 
+type ExistingOrderItemRecord = NonNullable<
+  Awaited<ReturnType<typeof prisma.orderItem.findUnique>>
+> & {
+  price: number;
+  note: string | null;
+};
+
 //#region OrderItem Controller
 /**
  * GET /orderItems - Get all order items, filter, sort, pagination
@@ -93,19 +100,36 @@ export const getOrderItems = async (req: Request, res: Response) => {
  */
 export const createOrderItem = async (req: Request, res: Response) => {
   try {
-    const { orderId, menuItemId, quantity } = req.body;
+    const { orderId, menuItemId, quantity, price, note } = req.body;
 
     const validation = await validateOrderItem({
       orderId,
       menuItemId,
       quantity,
+      price,
+      note,
     });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
     }
 
+    const selectedMenuItem = await prisma.menuItem.findUnique({
+      where: { id: menuItemId },
+      select: { price: true },
+    });
+
+    if (!selectedMenuItem) {
+      return res.status(400).json({ error: 'Menu item not found' });
+    }
+
     const orderItem = await prisma.orderItem.create({
-      data: { orderId, menuItemId, quantity },
+      data: {
+        orderId,
+        menuItemId,
+        quantity,
+        price: price !== undefined ? price : selectedMenuItem.price,
+        note: typeof note === 'string' ? note.trim() || null : null,
+      },
     });
     res.status(201).json(orderItem);
   } catch (error) {
@@ -156,19 +180,21 @@ export const getOrderItemById = async (req: Request, res: Response) => {
 export const updateOrderItem = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { orderId, menuItemId, quantity } = req.body;
+    const { orderId, menuItemId, quantity, price, note } = req.body;
 
-    const existing = await prisma.orderItem.findUnique({
+    const existing = (await prisma.orderItem.findUnique({
       where: { id: Number(id) },
-    });
+    })) as ExistingOrderItemRecord | null;
     if (!existing) {
       return res.status(404).json({ error: 'Order item not found' });
     }
 
     const validation = await validateOrderItem({
-      orderId,
-      menuItemId,
-      quantity,
+      orderId: orderId !== undefined ? orderId : existing.orderId,
+      menuItemId: menuItemId !== undefined ? menuItemId : existing.menuItemId,
+      quantity: quantity !== undefined ? quantity : existing.quantity,
+      price: price !== undefined ? price : existing.price,
+      note: note !== undefined ? note : existing.note,
     });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
@@ -180,6 +206,13 @@ export const updateOrderItem = async (req: Request, res: Response) => {
         orderId: orderId !== undefined ? orderId : existing.orderId,
         menuItemId: menuItemId !== undefined ? menuItemId : existing.menuItemId,
         quantity: quantity !== undefined ? quantity : existing.quantity,
+        price: price !== undefined ? price : existing.price,
+        note:
+          note !== undefined
+            ? typeof note === 'string'
+              ? note.trim() || null
+              : null
+            : existing.note,
       },
     });
 
@@ -242,12 +275,20 @@ export const validateOrderItem = async (data: {
   orderId?: number;
   menuItemId?: number;
   quantity?: number;
+  price?: number;
+  note?: string | null;
 }): Promise<OrderItemValidationResult> => {
   const errors: string[] = [];
 
   if (data.orderId === undefined) errors.push('orderId is required');
   if (data.menuItemId === undefined) errors.push('menuItemId is required');
   if (data.quantity === undefined) errors.push('quantity is required');
+  if (
+    data.price !== undefined &&
+    (typeof data.price !== 'number' || data.price < 0)
+  ) {
+    errors.push('price must be a non-negative number');
+  }
 
   if (
     data.quantity !== undefined &&
@@ -268,6 +309,10 @@ export const validateOrderItem = async (data: {
       where: { id: data.menuItemId },
     });
     if (!menuItemExists) errors.push('Menu item not found');
+  }
+
+  if (data.note && data.note.trim().length > 1000) {
+    errors.push('Note must be less than 1000 characters');
   }
 
   return {

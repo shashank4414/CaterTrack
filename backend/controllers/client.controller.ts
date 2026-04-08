@@ -121,7 +121,7 @@ export const getClients = async (req: Request, res: Response) => {
  */
 export const createClient = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, phone, email } = req.body;
+    const { firstName, lastName, phone, email, note } = req.body;
 
     // Validate required fields and formats
     const validation = await validateClient({
@@ -129,6 +129,7 @@ export const createClient = async (req: Request, res: Response) => {
       lastName,
       phone,
       email,
+      note,
     });
     if (!validation.valid) {
       return res.status(400).json({ errors: validation.errors });
@@ -139,8 +140,9 @@ export const createClient = async (req: Request, res: Response) => {
       data: {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim(),
-        email: email?.trim(),
+        phone: typeof phone === 'string' ? phone.trim() || null : null,
+        email: typeof email === 'string' ? email.trim() || null : null,
+        note: typeof note === 'string' ? note.trim() || null : null,
       },
     });
     res.status(201).json(client);
@@ -193,7 +195,7 @@ export const getClientById = async (req: Request, res: Response) => {
 export const updateClient = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, phone, email } = req.body;
+    const { firstName, lastName, phone, email, note } = req.body;
 
     const existing = await prisma.client.findUnique({
       where: { id: Number(id) },
@@ -204,7 +206,7 @@ export const updateClient = async (req: Request, res: Response) => {
 
     // Validate required fields and formats
     const validation = await validateClient(
-      { firstName, lastName, phone, email },
+      { firstName, lastName, phone, email, note },
       Number(id), // exclude current client ID for email uniqueness check
     );
     if (!validation.valid) {
@@ -217,8 +219,9 @@ export const updateClient = async (req: Request, res: Response) => {
       data: {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim(),
-        email: email?.trim(),
+        phone: typeof phone === 'string' ? phone.trim() || null : null,
+        email: typeof email === 'string' ? email.trim() || null : null,
+        note: typeof note === 'string' ? note.trim() || null : null,
       },
     });
 
@@ -286,12 +289,13 @@ export const validateClient = async (
     lastName?: string;
     phone?: string;
     email?: string | null;
+    note?: string | null;
   },
   excludeId?: number, // used for update
 ): Promise<ClientValidationResult> => {
   const errors: string[] = [];
 
-  const { firstName, lastName, phone, email } = data;
+  const { firstName, lastName, phone, email, note } = data;
 
   // Required fields
   if (!firstName?.trim()) errors.push('First name is required');
@@ -305,6 +309,10 @@ export const validateClient = async (
   // Phone format
   if (phone && !/^\+?[0-9\s\-()]+$/.test(phone)) {
     errors.push('Invalid phone number format');
+  }
+
+  if (note && note.trim().length > 1000) {
+    errors.push('Note must be less than 1000 characters');
   }
 
   // Duplicate email check
