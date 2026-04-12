@@ -95,6 +95,32 @@ describe('getClients', () => {
     expect(JSON.stringify(where)).toContain('ali');
   });
 
+  it('applies universal search across contact fields and id', async () => {
+    mockPrismaClient.findMany.mockResolvedValueOnce([]);
+    mockPrismaClient.count.mockResolvedValueOnce(0);
+
+    const req = mockReq({ query: { search: '12' } });
+    const res = mockRes();
+
+    await getClients(req, res);
+
+    const { where } = (mockPrismaClient.findMany as jest.Mock).mock.calls[0][0];
+    expect(where.AND[0].OR).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          email: expect.objectContaining({ contains: '12' }),
+        }),
+        expect.objectContaining({
+          phone: expect.objectContaining({ contains: '12' }),
+        }),
+        expect.objectContaining({
+          note: expect.objectContaining({ contains: '12' }),
+        }),
+        expect.objectContaining({ id: 12 }),
+      ]),
+    );
+  });
+
   it('responds 500 when database throws', async () => {
     mockPrismaClient.findMany.mockRejectedValueOnce(new Error('DB error'));
 

@@ -9,11 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.1.6",
+    "next": "^16.2.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -22,7 +23,9 @@
     "eslint-config-next": "16.1.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "postcss": "^8.5.9",
     "prettier": "^3.8.1",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5"
   }
 }

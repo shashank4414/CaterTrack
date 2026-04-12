@@ -34,6 +34,46 @@ export const getClients = async (req: Request, res: Response) => {
       limit = '10',
     } = req.query;
 
+    const searchValue = Array.isArray(search)
+      ? String(search[0] ?? '').trim()
+      : String(search ?? '').trim();
+    const numericSearch = Number(searchValue);
+    const universalSearchFilters = searchValue
+      ? [
+          {
+            firstName: {
+              contains: searchValue,
+              mode: 'insensitive',
+            },
+          },
+          {
+            lastName: {
+              contains: searchValue,
+              mode: 'insensitive',
+            },
+          },
+          {
+            email: {
+              contains: searchValue,
+              mode: 'insensitive',
+            },
+          },
+          {
+            phone: {
+              contains: searchValue,
+              mode: 'insensitive',
+            },
+          },
+          {
+            note: {
+              contains: searchValue,
+              mode: 'insensitive',
+            },
+          },
+          ...(Number.isInteger(numericSearch) ? [{ id: numericSearch }] : []),
+        ]
+      : [];
+
     // Pagination numbers
     const pageNum = Number(page);
     const limitNum = Number(limit);
@@ -50,22 +90,9 @@ export const getClients = async (req: Request, res: Response) => {
     // Build WHERE conditions
     const where: any = {
       AND: [
-        search
+        universalSearchFilters.length > 0
           ? {
-              OR: [
-                {
-                  firstName: {
-                    contains: String(search),
-                    mode: 'insensitive',
-                  },
-                },
-                {
-                  lastName: {
-                    contains: String(search),
-                    mode: 'insensitive',
-                  },
-                },
-              ],
+              OR: universalSearchFilters,
             }
           : {},
 
