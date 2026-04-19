@@ -35,6 +35,7 @@ type ClientDetailPageProps = {
 
 const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
+// Fetch the selected client record on the server before rendering the detail page.
 async function getClient(id: string): Promise<Client | null> {
   const res = await fetch(`${API_BASE_URL}/clients/${id}`, {
     cache: 'no-store',
@@ -44,6 +45,7 @@ async function getClient(id: string): Promise<Client | null> {
   return res.json();
 }
 
+// Orders are loaded separately so the page can show the relationship history inline.
 async function getClientOrders(id: string): Promise<OrdersResponse> {
   const res = await fetch(
     `${API_BASE_URL}/orders?clientId=${id}&limit=50&sortBy=createdAt&order=desc`,
@@ -57,6 +59,7 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
 }
 
+// Format stored 10-digit strings for display without changing the underlying data.
 function formatPhoneNumber(phone: string) {
   const digits = phone.replace(/\D/g, '');
 
@@ -94,6 +97,7 @@ export default async function ClientDetailPage({
 }: ClientDetailPageProps) {
   const { id } = await params;
 
+  // Fetch the primary record and its recent orders in parallel for a faster detail view.
   const [client, ordersResult] = await Promise.all([
     getClient(id).catch(() => null),
     getClientOrders(id).catch(() => ({ data: [], total: 0 })),

@@ -13,13 +13,19 @@ type Fields = {
   note: string;
 };
 
-export default function EditClientForm({
-  clientId,
-  initial,
-}: {
-  clientId: number;
+type ClientFormProps = {
+  mode: 'create' | 'edit';
   initial: Fields;
-}) {
+  clientId?: number;
+  cancelHref: string;
+};
+
+export default function ClientForm({
+  mode,
+  initial,
+  clientId,
+  cancelHref,
+}: ClientFormProps) {
   const router = useRouter();
   const [fields, setFields] = useState<Fields>(initial);
   const [errors, setErrors] = useState<string[]>([]);
@@ -33,9 +39,16 @@ export default function EditClientForm({
     e.preventDefault();
     setErrors([]);
     setLoading(true);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/clients/${clientId}`, {
-        method: 'PUT',
+      const isEditing = mode === 'edit' && typeof clientId === 'number';
+      const endpoint = isEditing
+        ? `${API_BASE_URL}/clients/${clientId}`
+        : `${API_BASE_URL}/clients`;
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: fields.firstName.trim(),
@@ -46,14 +59,15 @@ export default function EditClientForm({
         }),
       });
 
-      const body = await res.json();
+      const body = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setErrors(body?.errors ?? [body?.error ?? 'Failed to update client']);
+        setErrors(body?.errors ?? [body?.error ?? 'Failed to save client']);
         return;
       }
 
-      router.push(`/clients/${clientId}`);
+      const nextClientId = isEditing ? clientId : body?.id;
+      router.push(nextClientId ? `/clients/${nextClientId}` : '/clients');
       router.refresh();
     } catch {
       setErrors(['Something went wrong. Please try again.']);
@@ -120,6 +134,7 @@ export default function EditClientForm({
             type="tel"
             value={fields.phone}
             onChange={(e) => set('phone', e.target.value)}
+            placeholder="2899295656"
             className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
           />
         </div>
@@ -146,12 +161,16 @@ export default function EditClientForm({
           disabled={loading}
           className="inline-flex items-center gap-1.5 rounded-full bg-orange-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-800 disabled:opacity-60"
         >
-          {loading ? 'Saving…' : 'Save changes'}
+          {loading
+            ? 'Saving…'
+            : mode === 'create'
+              ? 'Create client'
+              : 'Save changes'}
         </button>
         <button
           type="button"
           disabled={loading}
-          onClick={() => router.back()}
+          onClick={() => router.push(cancelHref)}
           className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:border-orange-200 hover:text-orange-800 disabled:opacity-60"
         >
           Cancel

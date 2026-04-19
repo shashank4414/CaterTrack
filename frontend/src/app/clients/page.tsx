@@ -27,6 +27,7 @@ import SearchInput from './SearchInput';
 
 const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
+// Server-side fetch keeps the list in sync with search and pagination params.
 async function getClients(
   search: string,
   page: number,
@@ -45,6 +46,7 @@ function getInitials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
 }
 
+// Format stored 10-digit strings for display without changing the underlying data.
 function formatPhoneNumber(phone: string) {
   const digits = phone.replace(/\D/g, '');
 
@@ -65,6 +67,8 @@ function getClientsPageHref(search: string, page: number) {
 
 export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   const resolvedSearchParams = await searchParams;
+
+  // Normalize query params so both string and string[] inputs behave consistently.
   const search = Array.isArray(resolvedSearchParams?.search)
     ? resolvedSearchParams.search[0]?.trim() || ''
     : resolvedSearchParams?.search?.trim() || '';
@@ -73,6 +77,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
     : resolvedSearchParams?.page?.trim() || '1';
   const page = Math.max(1, Number(rawPage) || 1);
 
+  // Convert fetch failures into a simple render-state check for the page shell.
   const result = await getClients(search, page)
     .then((data) => ({ data, error: false }))
     .catch(() => ({ data: null, error: true }));
@@ -108,16 +113,27 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
   }
 
   const { data: clients, total, page: currentPage, totalPages } = result.data;
+
+  // These values drive the footer pagination summary and button states.
   const pageStart = total === 0 ? 0 : (currentPage - 1) * result.data.limit + 1;
   const pageEnd = total === 0 ? 0 : pageStart + clients.length - 1;
   const canGoToPreviousPage = currentPage > 1;
   const canGoToNextPage = currentPage < totalPages;
+  const resultsLabel = search
+    ? `${clients.length} result${clients.length !== 1 ? 's' : ''} for "${search}"`
+    : `${clients.length} client${clients.length !== 1 ? 's' : ''} total`;
+  const mobileSummaryLabel =
+    clients.length > 0
+      ? resultsLabel
+      : search
+        ? 'No matching clients'
+        : 'No clients yet';
 
   return (
     <main className="min-h-screen bg-amber-50 px-4 py-10 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-6xl space-y-6">
         {/* Page header */}
-        <header>
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-orange-700">
               Client Directory
@@ -129,17 +145,60 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
               Manage and browse your client records.
             </p>
           </div>
+          <Link
+            href="/clients/new"
+            className="hidden items-center justify-center gap-1.5 rounded-full border border-orange-200 bg-white/90 px-4 py-2 text-sm font-semibold text-orange-800 shadow-[0_12px_28px_-24px_rgba(120,53,15,0.5)] transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-900 sm:inline-flex"
+          >
+            <svg
+              className="h-4 w-4 text-orange-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            New client
+          </Link>
         </header>
 
         {/* Search bar */}
         <SearchInput defaultValue={search} />
 
+        {/* Mobile summary row */}
+        <div className="flex items-center justify-between gap-3 sm:hidden">
+          <p className="min-w-0 text-xs font-medium tracking-wide text-stone-600">
+            {mobileSummaryLabel}
+          </p>
+          <Link
+            href="/clients/new"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full border border-orange-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-orange-800 shadow-[0_12px_28px_-24px_rgba(120,53,15,0.5)] transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-900"
+          >
+            <svg
+              className="h-3.5 w-3.5 text-orange-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            New client
+          </Link>
+        </div>
+
         {/* Result count */}
         {clients.length > 0 && (
-          <p className="text-xs font-medium tracking-wide text-stone-600">
-            {search
-              ? `${clients.length} result${clients.length !== 1 ? 's' : ''} for "${search}"`
-              : `${clients.length} client${clients.length !== 1 ? 's' : ''} total`}
+          <p className="hidden text-xs font-medium tracking-wide text-stone-600 sm:block">
+            {resultsLabel}
           </p>
         )}
 

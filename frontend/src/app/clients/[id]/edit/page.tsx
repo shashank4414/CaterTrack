@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import EditClientForm from '../EditClientForm';
+import ClientForm from '../ClientForm';
 
 type Client = {
   id: number;
@@ -17,6 +17,7 @@ type EditClientPageProps = {
 
 const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
+// Load the current client on the server so the edit form starts fully populated.
 async function getClient(id: string): Promise<Client | null> {
   const res = await fetch(`${API_BASE_URL}/clients/${id}`, {
     cache: 'no-store',
@@ -28,6 +29,8 @@ async function getClient(id: string): Promise<Client | null> {
 
 export default async function EditClientPage({ params }: EditClientPageProps) {
   const { id } = await params;
+
+  // If the record cannot be loaded, fall back to the standard not-found boundary.
   const client = await getClient(id).catch(() => null);
   if (!client) notFound();
 
@@ -68,8 +71,10 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
             .
           </p>
           <div className="mt-5 border-t border-stone-200 pt-5">
-            <EditClientForm
+            <ClientForm
+              mode="edit"
               clientId={client.id}
+              cancelHref={`/clients/${client.id}`}
               initial={{
                 firstName: client.firstName,
                 lastName: client.lastName,
