@@ -32,9 +32,9 @@ export default function SearchInput({
   }, [value, pathname, router]);
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 shadow-sm transition focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100">
+    <div className="flex items-center gap-2 rounded-2xl border border-stone-300 bg-white/85 px-4 py-2 shadow-[0_18px_42px_-28px_rgba(120,53,15,0.35)] backdrop-blur-sm transition focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100">
       <svg
-        className="h-4 w-4 shrink-0 text-stone-300"
+        className="h-4 w-4 shrink-0 text-orange-400"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -52,13 +52,13 @@ export default function SearchInput({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search by name, email, phone…"
-        className="flex-1 bg-transparent py-1.5 text-sm text-zinc-900 placeholder-stone-300 outline-none"
+        className="flex-1 bg-transparent py-1.5 text-sm text-slate-900 placeholder-stone-400 outline-none"
       />
       {value && (
         <button
           type="button"
           onClick={() => setValue('')}
-          className="shrink-0 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500 transition hover:bg-stone-50"
+          className="shrink-0 rounded-xl border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-800 transition hover:bg-orange-100"
         >
           Clear
         </button>

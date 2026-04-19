@@ -65,7 +65,7 @@ export default function EditClientForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {errors.length > 0 && (
-        <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+        <div className="rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3">
           <ul className="space-y-0.5">
             {errors.map((err) => (
               <li key={err} className="text-xs text-red-600">
@@ -78,7 +78,7 @@ export default function EditClientForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="block text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+          <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">
             First name <span className="text-red-400">*</span>
           </label>
           <input
@@ -86,11 +86,11 @@ export default function EditClientForm({
             required
             value={fields.firstName}
             onChange={(e) => set('firstName', e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+          <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">
             Last name <span className="text-red-400">*</span>
           </label>
           <input
@@ -98,33 +98,33 @@ export default function EditClientForm({
             required
             value={fields.lastName}
             onChange={(e) => set('lastName', e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+          <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">
             Email
           </label>
           <input
             type="email"
             value={fields.email}
             onChange={(e) => set('email', e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
           />
         </div>
         <div>
-          <label className="block text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+          <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">
             Phone
           </label>
           <input
             type="tel"
             value={fields.phone}
             onChange={(e) => set('phone', e.target.value)}
-            className="mt-1.5 w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="block text-[10px] font-semibold uppercase tracking-widest text-stone-400">
+          <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">
             Note
           </label>
           <textarea
@@ -132,19 +132,19 @@ export default function EditClientForm({
             maxLength={1000}
             value={fields.note}
             onChange={(e) => set('note', e.target.value)}
-            className="mt-1.5 w-full resize-none rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+            className="mt-1.5 w-full resize-none rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
           />
-          <p className="mt-1 text-right text-[10px] text-stone-400">
+          <p className="mt-1 text-right text-[10px] text-stone-500">
             {fields.note.length}/1000
           </p>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-t border-stone-100 pt-5">
+      <div className="flex flex-wrap gap-2 border-t border-stone-200 pt-5">
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full bg-orange-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-800 disabled:opacity-60"
         >
           {loading ? 'Saving…' : 'Save changes'}
         </button>
@@ -152,7 +152,7 @@ export default function EditClientForm({
           type="button"
           disabled={loading}
           onClick={() => router.back()}
-          className="rounded-lg border border-stone-200 px-4 py-2 text-sm font-medium text-stone-500 transition hover:border-stone-300 hover:text-zinc-700 disabled:opacity-60"
+          className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:border-orange-200 hover:text-orange-800 disabled:opacity-60"
         >
           Cancel
         </button>

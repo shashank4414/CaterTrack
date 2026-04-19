@@ -40,7 +40,7 @@ export default function DeleteClientButton({
   if (confirming) {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm text-zinc-700">
+        <span className="text-sm text-slate-700">
           Delete <span className="font-semibold">{clientName}</span>?
         </span>
         <button
@@ -53,7 +53,7 @@ export default function DeleteClientButton({
         <button
           onClick={() => setConfirming(false)}
           disabled={loading}
-          className="rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500 transition hover:border-stone-300 hover:text-zinc-700 disabled:opacity-60"
+          className="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 transition hover:border-orange-200 hover:text-orange-800 disabled:opacity-60"
         >
           Cancel
         </button>

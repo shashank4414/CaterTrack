@@ -370,9 +370,9 @@ async function upsertMenuItems(categoriesByName) {
 
         const menuItem = existingMenuItem
             ? await prisma.menuItem.update({
-                  where: { id: existingMenuItem.id },
-                  data,
-              })
+                where: { id: existingMenuItem.id },
+                data,
+            })
             : await prisma.menuItem.create({ data });
 
         menuItemsByName.set(menuItem.name, menuItem);
@@ -434,26 +434,26 @@ async function upsertOrders(clientsByEmail, menuItemsByName) {
 
         const order = existingOrder
             ? await prisma.order.update({
-                  where: { id: existingOrder.id },
-                  data: {
-                      clientId: client.id,
-                      total,
-                      discount: orderSeed.discount,
-                      status: orderSeed.status,
-                      deliveryDate,
-                      note,
-                  },
-              })
+                where: { id: existingOrder.id },
+                data: {
+                    clientId: client.id,
+                    total,
+                    discount: orderSeed.discount,
+                    status: orderSeed.status,
+                    deliveryDate,
+                    note,
+                },
+            })
             : await prisma.order.create({
-                  data: {
-                      clientId: client.id,
-                      total,
-                      discount: orderSeed.discount,
-                      status: orderSeed.status,
-                      deliveryDate,
-                      note,
-                  },
-              });
+                data: {
+                    clientId: client.id,
+                    total,
+                    discount: orderSeed.discount,
+                    status: orderSeed.status,
+                    deliveryDate,
+                    note,
+                },
+            });
 
         for (const [itemIndex, pricedItem] of pricedItems.entries()) {
             const itemNote = `${note}-item-${String(itemIndex + 1).padStart(2, '0')}`;
