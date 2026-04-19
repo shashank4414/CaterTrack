@@ -21,6 +21,7 @@ type ClientsPageProps = {
   }>;
 };
 
+import Link from 'next/link';
 import SearchInput from './SearchInput';
 
 const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3001';
@@ -145,9 +146,10 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
             {/* Mobile cards */}
             <div className="space-y-2 md:hidden">
               {clients.map((client) => (
-                <article
+                <Link
                   key={client.id}
-                  className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm"
+                  href={`/clients/${client.id}`}
+                  className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50/40"
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700">
                     {getInitials(client.firstName, client.lastName)}
@@ -205,7 +207,7 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                       </p>
                     )}
                   </div>
-                </article>
+                </Link>
               ))}
             </div>
 
@@ -235,9 +237,14 @@ export default async function ClientsPage({ searchParams }: ClientsPageProps) {
                   {clients.map((client) => (
                     <tr
                       key={client.id}
-                      className="transition hover:bg-emerald-50/50"
+                      className="relative transition hover:bg-emerald-50/50"
                     >
                       <td className="whitespace-nowrap px-5 py-3.5 text-xs font-medium text-stone-300">
+                        <Link
+                          href={`/clients/${client.id}`}
+                          className="absolute inset-0"
+                          aria-label={`View ${client.firstName} ${client.lastName}`}
+                        />
                         #{client.id}
                       </td>
                       <td className="px-5 py-3.5">
