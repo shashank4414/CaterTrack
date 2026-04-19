@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 
 import clientRoutes from './routes/client.routes';
 import menuItemRoutes from './routes/menuItem.routes';
@@ -9,6 +10,7 @@ import { swaggerSpec } from './swagger.js';
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 // Mount route groups

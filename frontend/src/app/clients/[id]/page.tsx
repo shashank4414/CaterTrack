@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import DeleteClientButton from './DeleteClientButton';
 
 type Client = {
   id: number;
@@ -78,7 +79,9 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: 'bg-red-50 text-red-600 border-red-200',
 };
 
-export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
+export default async function ClientDetailPage({
+  params,
+}: ClientDetailPageProps) {
   const { id } = await params;
 
   const [client, ordersResult] = await Promise.all([
@@ -121,13 +124,34 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               {getInitials(client.firstName, client.lastName)}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-bold text-zinc-900">
-                  {client.firstName} {client.lastName}
-                </h1>
-                <span className="rounded-md border border-stone-200 px-2 py-0.5 text-xs font-medium text-stone-400">
-                  #{client.id}
-                </span>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-bold text-zinc-900">
+                    {client.firstName} {client.lastName}
+                  </h1>
+                  <span className="rounded-md border border-stone-200 px-2 py-0.5 text-xs font-medium text-stone-400">
+                    #{client.id}
+                  </span>
+                </div>
+                <Link
+                  href={`/clients/${client.id}/edit`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
+                >
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.75}
+                      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"
+                    />
+                  </svg>
+                  Edit
+                </Link>
               </div>
               <p className="mt-0.5 text-xs text-stone-400">
                 Joined {formatDate(client.createdAt)}
@@ -209,7 +233,6 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
 
           {/* Metadata footer */}
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 border-t border-stone-100 pt-4 text-xs text-stone-400">
-            <span>Joined {formatDate(client.createdAt)}</span>
             <span>Updated {formatDate(client.updatedAt)}</span>
           </div>
         </section>
@@ -262,7 +285,10 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                       STATUS_STYLES[order.status.toLowerCase()] ??
                       'bg-stone-50 text-stone-600 border-stone-200';
                     return (
-                      <tr key={order.id} className="transition hover:bg-stone-50">
+                      <tr
+                        key={order.id}
+                        className="transition hover:bg-stone-50"
+                      >
                         <td className="whitespace-nowrap px-4 py-3 text-xs font-medium text-stone-400">
                           #{order.id}
                         </td>
@@ -282,9 +308,11 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
                           ) : null}
                         </td>
                         <td className="hidden whitespace-nowrap px-4 py-3 text-stone-400 sm:table-cell">
-                          {order.deliveryDate
-                            ? formatDate(order.deliveryDate)
-                            : <span className="text-stone-200">—</span>}
+                          {order.deliveryDate ? (
+                            formatDate(order.deliveryDate)
+                          ) : (
+                            <span className="text-stone-200">—</span>
+                          )}
                         </td>
                         <td className="hidden whitespace-nowrap px-4 py-3 text-stone-400 sm:table-cell">
                           {formatDate(order.createdAt)}
@@ -296,6 +324,21 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
               </table>
             </div>
           )}
+        </section>
+
+        {/* Danger zone */}
+        <section className="rounded-2xl border border-red-100 bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-red-600">Danger zone</h2>
+          <p className="mt-1 text-xs text-stone-400">
+            Permanently delete this client and all associated data. This action
+            cannot be undone.
+          </p>
+          <div className="mt-4">
+            <DeleteClientButton
+              clientId={client.id}
+              clientName={`${client.firstName} ${client.lastName}`}
+            />
+          </div>
         </section>
       </div>
     </main>
