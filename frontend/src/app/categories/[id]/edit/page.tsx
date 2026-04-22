@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CategoryForm from '../CategoryForm';
-import { getCategory } from '../../categories/data';
+import { getCategory } from '../../data';
 
 type EditCategoryPageProps = {
   params: Promise<{ id: string }>;
