@@ -51,7 +51,9 @@ export default function AppNavigation() {
               CT
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-[0.16em] text-slate-950">CaterTrack</p>
+              <p className="text-sm font-semibold tracking-[0.16em] text-slate-950">
+                CaterTrack
+              </p>
               <p className="text-xs text-stone-500">Catering dashboard</p>
             </div>
           </Link>
@@ -60,7 +62,15 @@ export default function AppNavigation() {
             aria-label="Close menu"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200/80 bg-white/70 text-stone-500 transition hover:bg-orange-50 hover:text-orange-800"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            >
               <path d="M3 3l10 10M13 3L3 13" />
             </svg>
           </button>
@@ -94,7 +104,16 @@ export default function AppNavigation() {
           aria-label="Open menu"
           className="flex h-11 w-11 items-center justify-center rounded-2xl border border-orange-200/80 bg-white/85 text-orange-700 shadow-[0_4px_18px_-6px_rgba(120,53,15,0.18)] backdrop-blur-md transition hover:bg-orange-50 hover:text-orange-900"
         >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="3" y1="6" x2="17" y2="6" />
             <line x1="3" y1="10.5" x2="13" y2="10.5" />
             <line x1="3" y1="15" x2="9" y2="15" />

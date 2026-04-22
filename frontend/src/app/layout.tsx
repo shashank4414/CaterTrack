@@ -4,18 +4,19 @@ import AppNavigation from './AppNavigation';
 import './globals.css';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
   title: 'CaterTrack',
-  description: 'Catering operations dashboard for orders, clients, and menu management.',
+  description:
+    'Catering operations dashboard for orders, clients, and menu management.',
 };
 
 export default function RootLayout({
