@@ -104,6 +104,67 @@ describe('orders', () => {
     expect(JSON.stringify(where)).toContain('confirmed');
   });
 
+  it('applies client-name search and created date range filters', async () => {
+    mockPrismaOrder.findMany.mockResolvedValueOnce([]);
+    mockPrismaOrder.count.mockResolvedValueOnce(0);
+
+    const req = mockReq({
+      query: {
+        search: 'Jane Doe',
+        createdFrom: '2026-04-01',
+        createdTo: '2026-04-30',
+      },
+    });
+    const res = mockRes();
+
+    await orders(req, res);
+
+    const { where } = (mockPrismaOrder.findMany as jest.Mock).mock.calls[0][0];
+
+    expect(where.AND).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          createdAt: expect.objectContaining({
+            gte: expect.any(Date),
+            lte: expect.any(Date),
+          }),
+        }),
+        expect.objectContaining({
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                expect.objectContaining({
+                  client: expect.objectContaining({
+                    firstName: expect.objectContaining({ contains: 'Jane' }),
+                  }),
+                }),
+                expect.objectContaining({
+                  client: expect.objectContaining({
+                    lastName: expect.objectContaining({ contains: 'Jane' }),
+                  }),
+                }),
+              ]),
+            }),
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                expect.objectContaining({
+                  client: expect.objectContaining({
+                    firstName: expect.objectContaining({ contains: 'Doe' }),
+                  }),
+                }),
+                expect.objectContaining({
+                  client: expect.objectContaining({
+                    lastName: expect.objectContaining({ contains: 'Doe' }),
+                  }),
+                }),
+              ]),
+            }),
+          ]),
+        }),
+      ]),
+    );
+  });
+
   it('responds 500 when database throws', async () => {
     mockPrismaOrder.findMany.mockRejectedValueOnce(new Error('DB error'));
 

@@ -14,6 +14,9 @@ type OrdersPageProps = {
   searchParams?: Promise<{
     status?: string | string[];
     page?: string | string[];
+    search?: string | string[];
+    createdFrom?: string | string[];
+    createdTo?: string | string[];
   }>;
 };
 
@@ -40,8 +43,23 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
     ? resolvedSearchParams.page[0]?.trim() || '1'
     : resolvedSearchParams?.page?.trim() || '1';
   const page = Math.max(1, Number(rawPage) || 1);
+  const search = Array.isArray(resolvedSearchParams?.search)
+    ? resolvedSearchParams.search[0]?.trim() || ''
+    : resolvedSearchParams?.search?.trim() || '';
+  const createdFrom = Array.isArray(resolvedSearchParams?.createdFrom)
+    ? resolvedSearchParams.createdFrom[0]?.trim() || ''
+    : resolvedSearchParams?.createdFrom?.trim() || '';
+  const createdTo = Array.isArray(resolvedSearchParams?.createdTo)
+    ? resolvedSearchParams.createdTo[0]?.trim() || ''
+    : resolvedSearchParams?.createdTo?.trim() || '';
 
-  const result = await getOrders(status, page)
+  const result = await getOrders({
+    status,
+    page,
+    search,
+    createdFrom,
+    createdTo,
+  })
     .then((data) => ({ data, error: false }))
     .catch(() => ({ data: null, error: true }));
 
@@ -86,6 +104,9 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const pageEnd = total === 0 ? 0 : pageStart + orders.length - 1;
   const canGoToPreviousPage = currentPage > 1;
   const canGoToNextPage = currentPage < totalPages;
+  const hasSearch = Boolean(search);
+  const hasDateRange = Boolean(createdFrom || createdTo);
+  const hasFilters = status !== 'all' || hasSearch || hasDateRange;
   const resultsLabel =
     status === 'all'
       ? `${orders.length} order${orders.length !== 1 ? 's' : ''} shown`
@@ -140,7 +161,13 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
             return (
               <Link
                 key={filter}
-                href={getOrdersPageHref(filter, 1)}
+                href={getOrdersPageHref({
+                  status: filter,
+                  page: 1,
+                  search,
+                  createdFrom,
+                  createdTo,
+                })}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                   isActive
                     ? 'border-orange-300 bg-orange-100 text-orange-900'
@@ -152,6 +179,227 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
             );
           })}
         </div>
+
+        <details
+          className="group rounded-3xl border border-stone-300 bg-white/88 shadow-[0_24px_60px_-36px_rgba(120,53,15,0.35)] backdrop-blur-sm sm:hidden"
+          open={hasSearch || hasDateRange}
+        >
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-900 marker:hidden sm:hidden">
+            <span className="flex items-center gap-2">
+              <svg
+                className="h-4 w-4 text-orange-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.75}
+                  d="M3 4.5h18m-15 7.5h12m-9 7.5h6"
+                />
+              </svg>
+              Filters
+              {hasSearch || hasDateRange ? (
+                <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-800">
+                  Active
+                </span>
+              ) : null}
+            </span>
+            <svg
+              className="h-4 w-4 text-stone-400 transition group-open:rotate-180"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </summary>
+
+          <form method="get" className="hidden p-4 group-open:block">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_auto] lg:items-end">
+              <div>
+                <label
+                  htmlFor="order-search"
+                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500"
+                >
+                  Search client name
+                </label>
+                <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-stone-300 bg-stone-50/80 px-4 py-2 transition focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-100">
+                  <svg
+                    className="h-4 w-4 shrink-0 text-orange-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6.5 6.5a7.5 7.5 0 0 0 10.15 10.15Z"
+                    />
+                  </svg>
+                  <input
+                    id="order-search"
+                    name="search"
+                    type="search"
+                    defaultValue={search}
+                    placeholder="Search by first or last name"
+                    className="flex-1 bg-transparent py-1 text-sm text-slate-900 placeholder-stone-400 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="created-from"
+                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500"
+                >
+                  Created from
+                </label>
+                <input
+                  id="created-from"
+                  name="createdFrom"
+                  type="date"
+                  defaultValue={createdFrom}
+                  className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="created-to"
+                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500"
+                >
+                  Created to
+                </label>
+                <input
+                  id="created-to"
+                  name="createdTo"
+                  type="date"
+                  defaultValue={createdTo}
+                  className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2 lg:justify-end">
+                {status !== 'all' ? (
+                  <input type="hidden" name="status" value={status} />
+                ) : null}
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-800 transition hover:border-orange-300 hover:bg-orange-100 hover:text-orange-900"
+                >
+                  Apply filters
+                </button>
+                {hasSearch || hasDateRange ? (
+                  <Link
+                    href={getOrdersPageHref({ status, page: 1 })}
+                    className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-800"
+                  >
+                    Clear
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          </form>
+        </details>
+
+        <form
+          method="get"
+          className="hidden rounded-3xl border border-stone-300 bg-white/88 p-4 shadow-[0_24px_60px_-36px_rgba(120,53,15,0.35)] backdrop-blur-sm sm:block"
+        >
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_minmax(0,0.7fr)_auto] lg:items-end">
+            <div>
+              <label
+                htmlFor="order-search-desktop"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500"
+              >
+                Search client name
+              </label>
+              <div className="mt-1.5 flex items-center gap-2 rounded-2xl border border-stone-300 bg-stone-50/80 px-4 py-2 transition focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-100">
+                <svg
+                  className="h-4 w-4 shrink-0 text-orange-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6.5 6.5a7.5 7.5 0 0 0 10.15 10.15Z"
+                  />
+                </svg>
+                <input
+                  id="order-search-desktop"
+                  name="search"
+                  type="search"
+                  defaultValue={search}
+                  placeholder="Search by first or last name"
+                  className="flex-1 bg-transparent py-1 text-sm text-slate-900 placeholder-stone-400 outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="created-from-desktop"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500"
+              >
+                Created from
+              </label>
+              <input
+                id="created-from-desktop"
+                name="createdFrom"
+                type="date"
+                defaultValue={createdFrom}
+                className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="created-to-desktop"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500"
+              >
+                Created to
+              </label>
+              <input
+                id="created-to-desktop"
+                name="createdTo"
+                type="date"
+                defaultValue={createdTo}
+                className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              {status !== 'all' ? (
+                <input type="hidden" name="status" value={status} />
+              ) : null}
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-800 transition hover:border-orange-300 hover:bg-orange-100 hover:text-orange-900"
+              >
+                Apply filters
+              </button>
+              {hasSearch || hasDateRange ? (
+                <Link
+                  href={getOrdersPageHref({ status, page: 1 })}
+                  className="inline-flex items-center justify-center rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:border-orange-200 hover:bg-orange-50 hover:text-orange-800"
+                >
+                  Clear
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </form>
 
         <div className="flex items-start justify-between gap-2 sm:hidden">
           <p className="min-w-0 flex-1 text-xs font-medium leading-5 tracking-wide text-stone-600">
@@ -187,10 +435,16 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
         {orders.length === 0 ? (
           <div className="rounded-3xl border border-stone-300 bg-white/85 py-16 text-center shadow-[0_24px_60px_-36px_rgba(120,53,15,0.35)] backdrop-blur-sm">
             <p className="text-sm font-medium text-slate-800">
-              {status === 'all' ? 'No orders yet' : `No ${status} orders`}
+              {hasFilters
+                ? 'No matching orders'
+                : status === 'all'
+                  ? 'No orders yet'
+                  : `No ${status} orders`}
             </p>
             <p className="mt-1 text-xs text-stone-500">
-              Orders will appear here as they move through your workflow.
+              {hasFilters
+                ? 'Try changing the name search or created date range.'
+                : 'Orders will appear here as they move through your workflow.'}
             </p>
           </div>
         ) : (
@@ -365,7 +619,13 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
 
                 <div className="flex items-center justify-between gap-2 sm:justify-end">
                   <Link
-                    href={getOrdersPageHref(status, currentPage - 1)}
+                    href={getOrdersPageHref({
+                      status,
+                      page: currentPage - 1,
+                      search,
+                      createdFrom,
+                      createdTo,
+                    })}
                     aria-disabled={!canGoToPreviousPage}
                     className={`inline-flex w-28 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${
                       canGoToPreviousPage
@@ -397,7 +657,13 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                   </div>
 
                   <Link
-                    href={getOrdersPageHref(status, currentPage + 1)}
+                    href={getOrdersPageHref({
+                      status,
+                      page: currentPage + 1,
+                      search,
+                      createdFrom,
+                      createdTo,
+                    })}
                     aria-disabled={!canGoToNextPage}
                     className={`inline-flex w-28 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition ${
                       canGoToNextPage

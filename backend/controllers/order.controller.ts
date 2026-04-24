@@ -83,6 +83,35 @@ function parseDeliveryDate(value: unknown) {
   return { value: parsed, errors: [] as string[] };
 }
 
+function getQueryString(value: unknown) {
+  if (Array.isArray(value)) {
+    return String(value[0] ?? '').trim();
+  }
+
+  return String(value ?? '').trim();
+}
+
+function parseQueryDate(value: unknown, endOfDay: boolean) {
+  const rawValue = getQueryString(value);
+
+  if (!rawValue) {
+    return null;
+  }
+
+  const parsed = new Date(rawValue);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  if (endOfDay) {
+    parsed.setHours(23, 59, 59, 999);
+  } else {
+    parsed.setHours(0, 0, 0, 0);
+  }
+
+  return parsed;
+}
+
 async function prepareOrderItems(
   items: OrderItemInput[] | undefined,
   requireItems: boolean,
@@ -206,12 +235,22 @@ export const orders = async (req: Request, res: Response) => {
   try {
     const {
       clientId,
+      search,
       status,
+      createdFrom,
+      createdTo,
       sortBy = 'createdAt',
       order = 'asc',
       page = '1',
       limit = '10',
     } = req.query;
+
+    const searchTerms = getQueryString(search)
+      .split(/\s+/)
+      .map((term) => term.trim())
+      .filter(Boolean);
+    const createdFromDate = parseQueryDate(createdFrom, false);
+    const createdToDate = parseQueryDate(createdTo, true);
 
     const pageNum = Number(page);
     const limitNum = Number(limit);
@@ -224,10 +263,46 @@ export const orders = async (req: Request, res: Response) => {
       [field as string]: sortOrders[index] === 'desc' ? 'desc' : 'asc',
     }));
 
+    const createdAtFilter =
+      createdFromDate || createdToDate
+        ? {
+            createdAt: {
+              ...(createdFromDate ? { gte: createdFromDate } : {}),
+              ...(createdToDate ? { lte: createdToDate } : {}),
+            },
+          }
+        : {};
+
+    const clientSearchFilter =
+      searchTerms.length > 0
+        ? {
+            AND: searchTerms.map((term) => ({
+              OR: [
+                {
+                  client: {
+                    firstName: {
+                      contains: term,
+                    },
+                  },
+                },
+                {
+                  client: {
+                    lastName: {
+                      contains: term,
+                    },
+                  },
+                },
+              ],
+            })),
+          }
+        : {};
+
     const where: any = {
       AND: [
         clientId ? { clientId: Number(clientId) } : {},
         status ? { status: String(status) } : {},
+        clientSearchFilter,
+        createdAtFilter,
       ],
     };
 

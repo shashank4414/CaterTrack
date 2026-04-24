@@ -268,7 +268,7 @@ export default async function ClientDetailPage({
 
         {/* Orders section */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-slate-900">
               Orders
               {orders.length > 0 && (
@@ -277,6 +277,25 @@ export default async function ClientDetailPage({
                 </span>
               )}
             </h2>
+            <Link
+              href={`/orders/new?clientId=${client.id}&from=/clients/${client.id}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-800 transition hover:border-orange-300 hover:bg-orange-100 hover:text-orange-900"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.75}
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
+              </svg>
+              New Order
+            </Link>
           </div>
 
           {orders.length === 0 ? (

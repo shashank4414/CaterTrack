@@ -2,11 +2,34 @@ import Link from 'next/link';
 import OrderForm from '../[id]/OrderForm';
 import { getClients, getMenuItems } from '../data';
 
-export default async function NewOrderPage() {
+type NewOrderPageProps = {
+  searchParams?: Promise<{
+    clientId?: string | string[];
+    from?: string | string[];
+  }>;
+};
+
+export default async function NewOrderPage({
+  searchParams,
+}: NewOrderPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const rawClientId = Array.isArray(resolvedSearchParams?.clientId)
+    ? resolvedSearchParams.clientId[0]?.trim() || ''
+    : resolvedSearchParams?.clientId?.trim() || '';
+  const rawFrom = Array.isArray(resolvedSearchParams?.from)
+    ? resolvedSearchParams.from[0]?.trim() || ''
+    : resolvedSearchParams?.from?.trim() || '';
+
   const [clients, menuItems] = await Promise.all([
     getClients().catch(() => []),
     getMenuItems().catch(() => []),
   ]);
+  const initialClientId = clients.some(
+    (client) => String(client.id) === rawClientId,
+  )
+    ? rawClientId
+    : '';
+  const cancelHref = rawFrom.startsWith('/') ? rawFrom : '/orders';
   const missingClients = clients.length === 0;
   const missingMenuItems = menuItems.length === 0;
 
@@ -14,7 +37,7 @@ export default async function NewOrderPage() {
     <main className="px-4 py-10 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-4xl space-y-6">
         <Link
-          href="/orders"
+          href={cancelHref}
           className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition hover:text-orange-700"
         >
           <svg
@@ -30,7 +53,7 @@ export default async function NewOrderPage() {
               d="M15.75 19.5 8.25 12l7.5-7.5"
             />
           </svg>
-          Orders
+          {cancelHref.startsWith('/clients/') ? 'Client' : 'Orders'}
         </Link>
 
         <section className="rounded-3xl border border-stone-300 bg-white/88 p-6 shadow-[0_24px_60px_-36px_rgba(120,53,15,0.4)] backdrop-blur-sm">
@@ -61,9 +84,9 @@ export default async function NewOrderPage() {
                 mode="create"
                 clients={clients}
                 menuItems={menuItems}
-                cancelHref="/orders"
+                cancelHref={cancelHref}
                 initial={{
-                  clientId: '',
+                  clientId: initialClientId,
                   status: 'pending',
                   deliveryDate: '',
                   discount: '',

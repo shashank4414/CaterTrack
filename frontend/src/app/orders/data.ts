@@ -43,6 +43,14 @@ export type OrdersResponse = {
   totalPages: number;
 };
 
+export type OrderListFilters = {
+  status?: string;
+  page?: number;
+  search?: string;
+  createdFrom?: string;
+  createdTo?: string;
+};
+
 type ClientsResponse = {
   data: ClientOption[];
   page: number;
@@ -96,13 +104,19 @@ export const ORDER_STATUS_STYLES: Record<string, string> = {
 
 const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
-export async function getOrders(
-  status: string,
-  page: number,
-): Promise<OrdersResponse> {
+export async function getOrders({
+  status,
+  page,
+  search,
+  createdFrom,
+  createdTo,
+}: OrderListFilters): Promise<OrdersResponse> {
   const query = new URLSearchParams();
   if (status && status !== 'all') query.set('status', status);
-  if (page > 1) query.set('page', String(page));
+  if (page && page > 1) query.set('page', String(page));
+  if (search?.trim()) query.set('search', search.trim());
+  if (createdFrom?.trim()) query.set('createdFrom', createdFrom.trim());
+  if (createdTo?.trim()) query.set('createdTo', createdTo.trim());
 
   const response = await fetch(`${API_BASE_URL}/orders?${query.toString()}`, {
     cache: 'no-store',
@@ -172,10 +186,19 @@ export async function getMenuItems(): Promise<MenuItemOption[]> {
   return data.data;
 }
 
-export function getOrdersPageHref(status: string, page: number) {
+export function getOrdersPageHref({
+  status,
+  page,
+  search,
+  createdFrom,
+  createdTo,
+}: OrderListFilters) {
   const query = new URLSearchParams();
   if (status && status !== 'all') query.set('status', status);
-  if (page > 1) query.set('page', String(page));
+  if (page && page > 1) query.set('page', String(page));
+  if (search?.trim()) query.set('search', search.trim());
+  if (createdFrom?.trim()) query.set('createdFrom', createdFrom.trim());
+  if (createdTo?.trim()) query.set('createdTo', createdTo.trim());
   const queryString = query.toString();
   return queryString ? `/orders?${queryString}` : '/orders';
 }
