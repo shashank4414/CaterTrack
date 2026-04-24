@@ -71,6 +71,7 @@ export type ClientOption = {
   id: number;
   firstName: string;
   lastName: string;
+  phone?: string | null;
 };
 
 export type MenuItemOption = {

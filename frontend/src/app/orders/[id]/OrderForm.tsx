@@ -33,7 +33,45 @@ type OrderFormProps = {
   clients: ClientOption[];
   menuItems: MenuItemOption[];
   cancelHref: string;
+  clientFieldMode?: 'select' | 'searchable';
 };
+
+function getClientFullName(client: ClientOption) {
+  return `${client.firstName} ${client.lastName}`;
+}
+
+function formatPhoneNumber(phone: string | null | undefined) {
+  if (!phone) {
+    return 'No phone';
+  }
+
+  const digits = phone.replace(/\D/g, '');
+
+  if (digits.length !== 10) {
+    return phone;
+  }
+
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+function matchesClientSearch(client: ClientOption, value: string) {
+  const normalizedValue = value.trim().toLowerCase();
+  const phoneDigits = value.replace(/\D/g, '');
+
+  if (!normalizedValue) {
+    return true;
+  }
+
+  const fullName = getClientFullName(client).toLowerCase();
+  const clientPhone = client.phone ?? '';
+  const clientPhoneDigits = clientPhone.replace(/\D/g, '');
+
+  return (
+    fullName.includes(normalizedValue) ||
+    clientPhone.toLowerCase().includes(normalizedValue) ||
+    (phoneDigits.length > 0 && clientPhoneDigits.includes(phoneDigits))
+  );
+}
 
 function getEmptyLineItem(): OrderLineFields {
   return {
@@ -50,11 +88,45 @@ export default function OrderForm({
   clients,
   menuItems,
   cancelHref,
+  clientFieldMode = 'select',
 }: OrderFormProps) {
   const router = useRouter();
   const [fields, setFields] = useState<Fields>(initial);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [clientSearch, setClientSearch] = useState('');
+  const [isClientListOpen, setClientListOpen] = useState(false);
+
+  const selectedClient = clients.find(
+    (client) => String(client.id) === fields.clientId,
+  );
+  const clientInputValue = isClientListOpen
+    ? clientSearch
+    : selectedClient
+      ? getClientFullName(selectedClient)
+      : clientSearch;
+  const filteredClients = clients.filter((client) =>
+    matchesClientSearch(client, clientSearch),
+  );
+
+  function openClientList() {
+    setClientListOpen(true);
+
+    if (selectedClient && !clientSearch.trim()) {
+      setClientSearch('');
+    }
+  }
+
+  function closeClientList() {
+    setClientListOpen(false);
+    setClientSearch('');
+  }
+
+  function selectClient(client: ClientOption) {
+    set('clientId', String(client.id));
+    setClientSearch('');
+    setClientListOpen(false);
+  }
 
   function set<K extends keyof Fields>(key: K, value: Fields[K]) {
     setFields((prev) => ({ ...prev, [key]: value }));
@@ -223,19 +295,116 @@ export default function OrderForm({
               <label className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-stone-500">
                 Client <span className="text-red-400">*</span>
               </label>
-              <select
-                required
-                value={fields.clientId}
-                onChange={(e) => set('clientId', e.target.value)}
-                className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
-              >
-                <option value="">Select a client</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={String(client.id)}>
-                    {client.firstName} {client.lastName}
-                  </option>
-                ))}
-              </select>
+              {clientFieldMode === 'searchable' ? (
+                <div className="relative mt-1.5">
+                  <div className="flex items-center gap-2 rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm transition focus-within:border-orange-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-100">
+                    <svg
+                      className="h-4 w-4 shrink-0 text-orange-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6.5 6.5a7.5 7.5 0 0 0 10.15 10.15Z"
+                      />
+                    </svg>
+                    <input
+                      id="client-search"
+                      type="search"
+                      value={clientInputValue}
+                      onChange={(e) => setClientSearch(e.target.value)}
+                      onFocus={openClientList}
+                      onBlur={closeClientList}
+                      placeholder="Search by client name or phone"
+                      className="flex-1 bg-transparent text-sm text-slate-900 placeholder-stone-400 outline-none"
+                    />
+                    <svg
+                      className={`h-4 w-4 shrink-0 text-stone-400 transition ${
+                        isClientListOpen ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.75}
+                        d="m6 9 6 6 6-6"
+                      />
+                    </svg>
+                  </div>
+
+                  <p className="mt-1.5 min-h-[1rem] text-xs text-stone-500">
+                    {selectedClient
+                      ? `${getClientFullName(selectedClient)} • ${formatPhoneNumber(selectedClient.phone)}`
+                      : 'Select a client to attach this order.'}
+                  </p>
+
+                  {isClientListOpen ? (
+                    <div className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_20px_45px_-30px_rgba(15,23,42,0.35)]">
+                      <div className="max-h-64 overflow-y-auto">
+                        {filteredClients.length > 0 ? (
+                          <div className="divide-y divide-stone-100">
+                            {filteredClients.map((client) => {
+                              const isSelected = String(client.id) === fields.clientId;
+
+                              return (
+                                <button
+                                  key={client.id}
+                                  type="button"
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onClick={() => selectClient(client)}
+                                  className={`flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition ${
+                                    isSelected
+                                      ? 'bg-orange-50'
+                                      : 'hover:bg-stone-50'
+                                  }`}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-medium text-slate-900">
+                                      {getClientFullName(client)}
+                                    </p>
+                                    <p className="mt-0.5 text-xs text-stone-500">
+                                      {formatPhoneNumber(client.phone)}
+                                    </p>
+                                  </div>
+                                  {isSelected ? (
+                                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-700">
+                                      Current
+                                    </span>
+                                  ) : null}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="px-3 py-4 text-sm text-stone-500">
+                            No clients match that name or phone number.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <select
+                  required
+                  value={fields.clientId}
+                  onChange={(e) => set('clientId', e.target.value)}
+                  className="mt-1.5 w-full rounded-2xl border border-stone-300 bg-stone-50/80 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100"
+                >
+                  <option value="">Select a client</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={String(client.id)}>
+                      {getClientFullName(client)}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>

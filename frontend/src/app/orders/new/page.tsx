@@ -85,6 +85,7 @@ export default async function NewOrderPage({
                 clients={clients}
                 menuItems={menuItems}
                 cancelHref={cancelHref}
+                clientFieldMode="searchable"
                 initial={{
                   clientId: initialClientId,
                   status: 'pending',
