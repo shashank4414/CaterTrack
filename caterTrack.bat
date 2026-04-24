@@ -43,8 +43,23 @@ goto wait_for_api
 echo API is ready.
 
 :start_frontend
+if not exist "%FRONTEND_DIR%\node_modules\tailwindcss\package.json" (
+	echo Installing frontend dependencies...
+	call npm.cmd --prefix "%FRONTEND_DIR%" install
+	if errorlevel 1 (
+		echo [ERROR] Frontend dependency installation failed.
+		pause
+		exit /b 1
+	)
+)
+
+if exist "%FRONTEND_DIR%\.next" (
+	echo Clearing frontend build cache...
+	rmdir /s /q "%FRONTEND_DIR%\.next"
+)
+
 echo Starting frontend...
-start "CaterTrack Frontend" /D "%FRONTEND_DIR%" cmd /k "npm run dev"
+start "CaterTrack Frontend" /D "%FRONTEND_DIR%" cmd /k "npm.cmd run dev"
 
 echo Waiting for frontend to initialize...
 timeout /t 6 /nobreak >nul
