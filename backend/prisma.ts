@@ -4,7 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const databaseUrl = `file:${path.join(__dirname, 'dev.db')}`;
+const databaseUrl =
+  process.env.DATABASE_URL || `file:${path.join(__dirname, 'dev.db')}`;
 const adapter = new PrismaLibSql({ url: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
