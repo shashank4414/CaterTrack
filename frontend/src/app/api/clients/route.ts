@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3001';
+const API_BASE_URL =
+  process.env.API_BASE_URL ??
+  'https://catertrack-production.up.railway.app/clients';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
