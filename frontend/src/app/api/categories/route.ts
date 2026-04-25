@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const API_BASE_URL =
-  process.env.API_BASE_URL ?? 'https://catertrack-se8m.onrender.com';
+  process.env.API_BASE_URL ?? 'https://catertrack-production.up.railway.app/';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
