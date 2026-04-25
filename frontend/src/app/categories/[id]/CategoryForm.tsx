@@ -3,7 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const API_BASE_URL = '/categories';
+const API_BASE_URL =
+  process.env.API_BASE_URL ??
+  'https://catertrack-production.up.railway.app/categories';
 
 type Fields = {
   name: string;
