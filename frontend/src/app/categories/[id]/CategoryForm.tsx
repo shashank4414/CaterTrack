@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '/categories';
 
 type Fields = {
   name: string;
